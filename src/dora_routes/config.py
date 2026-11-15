@@ -36,6 +36,20 @@ class Settings(BaseSettings):
     )
     brouter_timeout_s: float = Field(15.0, gt=0, description="Timeout of a single BRouter call, in seconds.")
     request_timeout_s: float = Field(45.0, gt=0, description="Total time budget of one loop request, in seconds.")
+    brouter_max_parallel: int = Field(
+        4, ge=1, le=4, description="BRouter calls in flight at once. Never more than 4: brouter.de bans bursts."
+    )
+    nominatim_url: str = Field(
+        "https://nominatim.openstreetmap.org/search", description="Nominatim search endpoint for place names."
+    )
+    tile_url: str = Field(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        description="Map tile URL template. Point it at a self-hosted or commercial tile server for volume use.",
+    )
+    tile_cache_dir: str = Field(
+        "~/.cache/dora-routes/tiles", description="Disk cache for map tiles (OSM tile policy: cache, low volume)."
+    )
+    map_size_px: int = Field(800, ge=200, le=2000, description="Width and height of the map image, in pixels.")
     user_agent: str = Field(DEFAULT_USER_AGENT, description="User-Agent sent to BRouter, Nominatim and tile servers.")
     log_level: str = Field("INFO", description="Python logging level.")
 
