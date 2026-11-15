@@ -26,7 +26,10 @@ services:
     restart: unless-stopped
 
   brouter:
-    image: ${BROUTER_IMAGE:-ghcr.io/abrensch/brouter:v1.7.8}
+    # Segment files are rebuilt weekly with BRouter's current lookup table (version 11 since BRouter 1.7.10). An older
+    # BRouter refuses them ("lookup version mismatch"), and upstream has published no release image since v1.7.8, so
+    # this pins the `master` image of 2026-11-15 (after v1.7.10) by digest. To update: see the wiki, "Self-hosting".
+    image: ${BROUTER_IMAGE:-ghcr.io/abrensch/brouter@sha256:fbc2a0e47e655fb20ab0005c9f5fbc60e6e45e0997092713c1b996bc7cf01711}
     environment:
       # 4 threads: Dora sends at most 4 routing calls in parallel. 1 GB heap is enough for 150 km bike loops.
       MAXTHREADS: ${BROUTER_MAXTHREADS:-4}
