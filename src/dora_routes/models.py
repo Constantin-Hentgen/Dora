@@ -73,3 +73,58 @@ class LoopRequest(BaseModel):
             return self.duration_min / 60 * self.speed_kmh
         pace = self.pace_min_per_km or get_activity(self.activity).default_pace_min_per_km
         return self.duration_min / pace
+
+
+# ---------------------------------------------------------------------------
+# Response models: shared by the HTTP service and the typed client
+# ---------------------------------------------------------------------------
+
+
+class Shares(BaseModel):
+    """Share of the loop's length (0-1) by kind of way."""
+
+    deserted: float = Field(description="Paths without cars, crowds or bikes: the running default.")
+    paved: float
+    crowded: float = Field(description="Pedestrian streets, cycleways and bike-shared paths.")
+    busy: float = Field(description="Main roads (primary to tertiary, trunk and their links).")
+    marked: float = Field(description="Waymarked hiking trails.")
+
+
+class GeoJSONLineString(BaseModel):
+    type: Literal["LineString"] = "LineString"
+    coordinates: list[list[float]] = Field(description="[lon, lat] or [lon, lat, elevation] positions.")
+
+
+class GeoJSONFeature(BaseModel):
+    type: Literal["Feature"] = "Feature"
+    geometry: GeoJSONLineString
+    properties: dict[str, str | float | int | None] = Field(default_factory=dict)
+
+
+class LoopOut(BaseModel):
+    id: str = Field(description="Use with GET /v1/loops/{id}.gpx and .png while the result is cached.")
+    distance_km: float
+    climb_m: int
+    bearing: float = Field(description="Direction the loop heads to from the start, in degrees (0 = north).")
+    shares: Shares
+    crossings: int = Field(description="Pedestrian crossings and traffic lights passed.")
+    novelty: float | None = Field(None, description="Share never done before; set with avoid_tracks or never_done.")
+    caption: str
+    geojson: GeoJSONFeature
+    gpx_url: str
+    png_url: str
+    gpx_base64: str | None = Field(None, description="With ?include=gpx.")
+    png_base64: str | None = Field(None, description="With ?include=png.")
+
+
+class PlaceOut(BaseModel):
+    name: str
+    lat: float
+    lon: float
+
+
+class LoopsResponse(BaseModel):
+    start: Coordinates
+    place: PlaceOut | None = None
+    target_km: float
+    loops: list[LoopOut]

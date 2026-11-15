@@ -1,7 +1,4 @@
-"""FastAPI application. Run with `uvicorn dora_routes.server.app:app`.
-
-Milestone 1 only exposes `/health`; the loop API (`/v1/loops`) arrives in milestone 3.
-"""
+"""FastAPI application. Run with `uvicorn dora_routes.server.app:app`; interactive docs at `/docs`."""
 
 from __future__ import annotations
 
@@ -15,6 +12,8 @@ from pydantic import BaseModel
 
 from dora_routes import __version__
 from dora_routes.config import Settings, get_settings
+from dora_routes.server.cache import ResultCache
+from dora_routes.server.loops_api import build_router
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +80,7 @@ async def probe_brouter(settings: Settings, transport: httpx.AsyncBaseTransport 
 
 
 def create_app(brouter_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
-    """`brouter_transport` lets tests swap the network for an `httpx.MockTransport`."""
+    """`brouter_transport` lets tests swap the network (BRouter, Nominatim, tiles) for an `httpx.MockTransport`."""
     settings = get_settings()
     logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     app = FastAPI(
@@ -89,6 +88,10 @@ def create_app(brouter_transport: httpx.AsyncBaseTransport | None = None) -> Fas
         version=__version__,
         summary="Loop routes (start = finish) for running, hiking and cycling, on BRouter and OpenStreetMap.",
         license_info={"name": "MIT", "identifier": "MIT"},
+    )
+
+    app.include_router(
+        build_router(ResultCache(settings.result_ttl_s, settings.result_cache_size), brouter_transport, probe_brouter)
     )
 
     @app.get("/health", response_model=Health, tags=["operations"])

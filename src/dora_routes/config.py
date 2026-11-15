@@ -50,6 +50,10 @@ class Settings(BaseSettings):
         "~/.cache/dora-routes/tiles", description="Disk cache for map tiles (OSM tile policy: cache, low volume)."
     )
     map_size_px: int = Field(800, ge=200, le=2000, description="Width and height of the map image, in pixels.")
+    result_ttl_s: float = Field(
+        900.0, gt=0, description="How long loops stay available at GET /v1/loops/{id}.gpx and .png, in seconds."
+    )
+    result_cache_size: int = Field(200, ge=1, description="Most loops kept in memory for those downloads (LRU).")
     user_agent: str = Field(DEFAULT_USER_AGENT, description="User-Agent sent to BRouter, Nominatim and tile servers.")
     log_level: str = Field("INFO", description="Python logging level.")
 
