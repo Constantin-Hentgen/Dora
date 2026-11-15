@@ -10,7 +10,7 @@ for your watch, a map image and stats: how much is on paths away from cars and c
 much climb, and how much of it you have never run before.
 
 > 🚧 Early development. The screenshot and the API arrive with the first milestones; see the
-> [project board](https://github.com/users/Constantin-Hentgen/projects/8).
+> [project board](https://github.com/users/Constantin-Hentgen/projects/14).
 
 ## Why
 
