@@ -1,0 +1,59 @@
+# Dora + a self-hosted BRouter. `docker compose up -d` on a fresh machine:
+#   1. `segments` downloads the BRouter rd5 tiles for SEGMENTS_BBOX (default: France, ~1.5 GB, first run only),
+#   2. `brouter` starts once they are there,
+#   3. `dora` serves the API on http://localhost:${DORA_PORT:-8000} (OpenAPI docs at /docs).
+# Monthly segment refresh (cron), see the wiki page "Self-hosting":
+#   0 4 1 * *  cd /path/to/dora && docker compose run --rm segments && docker compose restart brouter
+name: dora
+
+x-dora-image: &dora-image
+  image: ${DORA_IMAGE:-ghcr.io/constantin-hentgen/dora:latest}
+  build: .
+
+services:
+  dora:
+    <<: *dora-image
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      BROUTER_URL: ${BROUTER_URL:-http://brouter:17777/brouter}
+    ports:
+      - "${DORA_PORT:-8000}:8000"
+    depends_on:
+      brouter:
+        condition: service_started
+    restart: unless-stopped
+
+  brouter:
+    image: ${BROUTER_IMAGE:-ghcr.io/abrensch/brouter:v1.7.8}
+    environment:
+      # 4 threads: Dora sends at most 4 routing calls in parallel. 1 GB heap is enough for 150 km bike loops.
+      MAXTHREADS: ${BROUTER_MAXTHREADS:-4}
+      JAVA_OPTS: ${BROUTER_JAVA_OPTS:--Xmx1024M -Xms128M -Xmn8M -DmaxRunningTime=60 -DuseRFCMimeType=false -DusePOSTRequests=false}
+    volumes:
+      - segments:/segments4:ro
+      # Custom Dora profiles are mounted next to BRouter's built-in ones (lookups.dat must stay there), one file
+      # per profile, e.g. (milestone 4):
+      # - ./profiles/running-deserted.brf:/profiles2/running-deserted.brf:ro
+    # Not published on the host: only Dora talks to it. Uncomment to try BRouter by hand.
+    # ports:
+    #   - "17777:17777"
+    depends_on:
+      segments:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  segments:
+    <<: *dora-image
+    # --ok-if-present: if the segment server is briefly down, start with the tiles we already have.
+    command: ["dora-segments", "--ok-if-present"]
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - segments:/segments4
+    restart: "no"
+
+volumes:
+  segments:
