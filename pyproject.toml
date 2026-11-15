@@ -30,9 +30,9 @@ server = [
 dora-segments = "dora_routes.segments:main"
 
 [project.urls]
-Homepage = "https://github.com/Constantin-Hentgen/dora"
-Documentation = "https://github.com/Constantin-Hentgen/dora/wiki"
-Changelog = "https://github.com/Constantin-Hentgen/dora/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Constantin-Hentgen/Dora"
+Documentation = "https://github.com/Constantin-Hentgen/Dora/wiki"
+Changelog = "https://github.com/Constantin-Hentgen/Dora/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
