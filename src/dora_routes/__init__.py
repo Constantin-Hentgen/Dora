@@ -12,6 +12,7 @@ except PackageNotFoundError:  # running from a source tree that was never instal
 
 from dora_routes.activities import ACTIVITIES, RUNNING, Activity, Surface, get_activity
 from dora_routes.api import LoopsResult, PlaceNotFoundError, find_loops, find_loops_sync
+from dora_routes.client import AsyncDoraClient, DoraClient, DoraError, ServiceUnavailableError
 from dora_routes.gpx import to_gpx
 from dora_routes.loops import Loop
 from dora_routes.mapimage import render_map
@@ -21,11 +22,15 @@ __all__ = [
     "ACTIVITIES",
     "RUNNING",
     "Activity",
+    "AsyncDoraClient",
     "Coordinates",
+    "DoraClient",
+    "DoraError",
     "Loop",
     "LoopRequest",
     "LoopsResult",
     "PlaceNotFoundError",
+    "ServiceUnavailableError",
     "Surface",
     "__version__",
     "find_loops",
