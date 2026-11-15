@@ -9,7 +9,11 @@ Ask for *10 km of running around this park, quiet paths please* and get back a f
 for your watch, a map image and stats: how much is on paths away from cars and crowds, how many streets you cross, how
 much climb, and how much of it you have never run before.
 
-> 🚧 Early development. The screenshot and the API arrive with the first milestones; see the
+![An 8 km loop in the Bois de Vincennes](docs/screenshot.png)
+
+*8.0 km · 59 % away from cars and crowds · 20 crossings · 65 % on waymarked trails · 25 m climb*
+
+> 🚧 Early development: the library works; the HTTP API comes next. See the
 > [project board](https://github.com/users/Constantin-Hentgen/projects/14).
 
 ## Why
@@ -27,7 +31,16 @@ docker compose up -d          # first start downloads the BRouter map tiles (~1.
 curl localhost:8000/health
 ```
 
-As a library: `pip install dora-routes` (core) or `pip install "dora-routes[server]"` (HTTP service).
+As a library (`pip install dora-routes`, needs a BRouter: the compose stack, or `BROUTER_URL`):
+
+```python
+from dora_routes import find_loops_sync, to_gpx
+
+result = find_loops_sync(start={"lat": 48.835, "lon": 2.44}, distance_km=8)
+for i, loop in enumerate(result.loops, 1):
+    print(loop.caption)
+    open(f"loop-{i}.gpx", "wb").write(to_gpx(loop.points, f"Loop {i}"))
+```
 
 ## Documentation
 
