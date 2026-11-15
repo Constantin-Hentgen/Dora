@@ -17,7 +17,7 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from dora_routes import __version__
 
 # Generic client name: never put a person's name or e-mail in requests to third-party services.
-DEFAULT_USER_AGENT = "dora-routes/{version} (+https://github.com/Constantin-Hentgen/dora)"
+DEFAULT_USER_AGENT = "dora-routes/{version} (+https://github.com/Constantin-Hentgen/Dora)"
 
 # Mainland France + Corsica. Brittany's western tip is at about -4.8°; Ouessant (-5.1°) would pull in a whole extra
 # 5° column of mostly-Atlantic tiles, so it is left out of the default.

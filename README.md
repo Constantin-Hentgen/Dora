@@ -21,7 +21,7 @@ things that ruin a run: dead-end spurs your watch would send you into, out-and-b
 ## Quick start
 
 ```sh
-git clone https://github.com/Constantin-Hentgen/dora && cd dora
+git clone https://github.com/Constantin-Hentgen/Dora && cd Dora
 cp .env.example .env          # optional: change SEGMENTS_BBOX if you are not in France
 docker compose up -d          # first start downloads the BRouter map tiles (~1.5 GB for France)
 curl localhost:8000/health
@@ -31,7 +31,7 @@ As a library: `pip install dora-routes` (core) or `pip install "dora-routes[serv
 
 ## Documentation
 
-Everything else lives in the [wiki](https://github.com/Constantin-Hentgen/dora/wiki): configuration, self-hosting,
+Everything else lives in the [wiki](https://github.com/Constantin-Hentgen/Dora/wiki): configuration, self-hosting,
 the API, how loops are built and scored.
 
 ## Licence
