@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.9.9"
+      - name: ruff check
+        run: uv run --frozen ruff check --output-format=github .
+      - name: ruff format
+        run: uv run --frozen ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.9.9"
+          enable-cache: true
+      - name: pytest
+        run: uv run --frozen python -m pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+      - uses: docker/setup-buildx-action@v4
+      - name: Build image (not pushed; publishing comes with releases)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: loopwise:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image
+        run: |
+          docker run --rm loopwise:ci python -c "import loopwise.server.app"
+          docker run --rm -e SEGMENTS_BBOX=2.2,48.8,2.5,48.9 loopwise:ci loopwise-segments --dry-run | grep -qx E0_N45.rd5
