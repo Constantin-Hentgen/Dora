@@ -49,10 +49,10 @@ jobs:
           context: .
           push: false
           load: true
-          tags: loopwise:ci
+          tags: dora:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Smoke test the image
         run: |
-          docker run --rm loopwise:ci python -c "import loopwise.server.app"
-          docker run --rm -e SEGMENTS_BBOX=2.2,48.8,2.5,48.9 loopwise:ci loopwise-segments --dry-run | grep -qx E0_N45.rd5
+          docker run --rm dora:ci python -c "import dora_routes.server.app"
+          docker run --rm -e SEGMENTS_BBOX=2.2,48.8,2.5,48.9 dora:ci dora-segments --dry-run | grep -qx E0_N45.rd5

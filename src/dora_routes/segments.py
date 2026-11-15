@@ -30,7 +30,7 @@ from pathlib import Path
 
 import httpx
 
-from loopwise.config import get_settings
+from dora_routes.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +163,7 @@ def _parse_bbox(text: str) -> BBox:
 def main(argv: Sequence[str] | None = None) -> int:
     settings = get_settings()
     parser = argparse.ArgumentParser(
-        prog="loopwise-segments", description="Download or update BRouter rd5 segment files for a bounding box."
+        prog="dora-segments", description="Download or update BRouter rd5 segment files for a bounding box."
     )
     parser.add_argument(
         "--bbox",

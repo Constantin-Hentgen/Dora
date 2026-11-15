@@ -2,7 +2,7 @@ from collections.abc import Iterator
 
 import pytest
 
-from loopwise.config import get_settings
+from dora_routes.config import get_settings
 
 
 @pytest.fixture(autouse=True)

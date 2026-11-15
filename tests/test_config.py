@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from loopwise.config import FRANCE_BBOX, Settings
+from dora_routes.config import FRANCE_BBOX, Settings
 
 
 def test_defaults_work_without_any_environment() -> None:
@@ -30,4 +30,4 @@ def test_public_brouter_is_detected(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_user_agent_is_generic() -> None:
     ua = Settings().http_user_agent()
-    assert ua.startswith("loopwise/") and "@" not in ua
+    assert ua.startswith("dora-routes/") and "@" not in ua

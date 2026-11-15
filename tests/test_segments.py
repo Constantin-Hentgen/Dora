@@ -6,11 +6,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from loopwise import segments
-from loopwise.config import FRANCE_BBOX
-from loopwise.segments import TileStatus, exit_code, sync_segments, tile_name, tiles_for_bbox
+from dora_routes import segments
+from dora_routes.config import FRANCE_BBOX
+from dora_routes.segments import TileStatus, exit_code, sync_segments, tile_name, tiles_for_bbox
 
-UA = "loopwise/test"
+UA = "dora-routes/test"
 STAMP = datetime(2026, 11, 1, 3, 0, tzinfo=UTC)
 
 

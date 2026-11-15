@@ -2,8 +2,8 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from loopwise import __version__
-from loopwise.server import app as app_module
+from dora_routes import __version__
+from dora_routes.server import app as app_module
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +28,7 @@ def test_health_ok_when_brouter_answers_even_with_an_error_message() -> None:
     body = res.json()
     assert body["status"] == "ok" and body["version"] == __version__
     assert body["brouter"]["reachable"] and not body["brouter"]["public"]
-    assert seen[0].headers["user-agent"].startswith("loopwise/")
+    assert seen[0].headers["user-agent"].startswith("dora-routes/")
 
 
 def test_health_503_when_brouter_is_down() -> None:

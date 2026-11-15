@@ -1,5 +1,5 @@
 [project]
-name = "loopwise"
+name = "dora-routes"
 version = "0.0.0"
 description = "Self-hosted loop-route generator (running, hiking, cycling) on BRouter and OpenStreetMap."
 readme = "README.md"
@@ -27,16 +27,16 @@ server = [
 ]
 
 [project.scripts]
-loopwise-segments = "loopwise.segments:main"
+dora-segments = "dora_routes.segments:main"
 
 [project.urls]
-Homepage = "https://github.com/Constantin-Hentgen/loopwise"
-Documentation = "https://github.com/Constantin-Hentgen/loopwise/wiki"
-Changelog = "https://github.com/Constantin-Hentgen/loopwise/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Constantin-Hentgen/dora"
+Documentation = "https://github.com/Constantin-Hentgen/dora/wiki"
+Changelog = "https://github.com/Constantin-Hentgen/dora/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
-    "loopwise[server]",
+    "dora-routes[server]",
     "pytest>=8.3",
     "ruff>=0.8",
 ]

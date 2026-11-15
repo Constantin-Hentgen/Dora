@@ -15,13 +15,13 @@
   ],
   "packages": {
     ".": {
-      "package-name": "loopwise",
+      "package-name": "dora-routes",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {
           "type": "toml",
           "path": "uv.lock",
-          "jsonpath": "$.package[?(@.name.value=='loopwise')].version"
+          "jsonpath": "$.package[?(@.name.value=='dora-routes')].version"
         }
       ]
     }

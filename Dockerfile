@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# loopwise HTTP service. The same image also runs `loopwise-segments` (see docker-compose.yml).
+# Dora HTTP service. The same image also runs `dora-segments` (see docker-compose.yml).
 
 FROM python:3.13-slim AS build
 COPY --from=ghcr.io/astral-sh/uv:0.9.9 /uv /bin/uv
@@ -14,17 +14,17 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra 
 
 FROM python:3.13-slim
 # uid 1000, like the BRouter image: both containers can share the segments volume.
-RUN groupadd --gid 1000 loopwise \
-    && useradd --uid 1000 --gid loopwise --home-dir /app --no-create-home loopwise \
+RUN groupadd --gid 1000 dora \
+    && useradd --uid 1000 --gid dora --home-dir /app --no-create-home dora \
     && mkdir -p /app /segments4 \
-    && chown loopwise:loopwise /app /segments4
+    && chown dora:dora /app /segments4
 COPY --from=build /app/.venv /app/.venv
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     SEGMENTS_DIR=/segments4
 WORKDIR /app
-USER loopwise
+USER dora
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=8)"]
-CMD ["uvicorn", "loopwise.server.app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "dora_routes.server.app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

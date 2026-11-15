@@ -1,7 +1,7 @@
 """Runtime configuration, read from environment variables (and an optional `.env` file).
 
 Every variable is documented in `.env.example` and on the wiki "Configuration" page. Defaults are chosen so that
-`docker compose up` works on a fresh machine and so that a plain `pip install loopwise` user talks to a BRouter on
+`docker compose up` works on a fresh machine and so that a plain `pip install dora-routes` user talks to a BRouter on
 localhost rather than silently hammering the public instance.
 """
 
@@ -14,10 +14,10 @@ from urllib.parse import urlparse
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-from loopwise import __version__
+from dora_routes import __version__
 
 # Generic client name: never put a person's name or e-mail in requests to third-party services.
-DEFAULT_USER_AGENT = "loopwise/{version} (+https://github.com/Constantin-Hentgen/loopwise)"
+DEFAULT_USER_AGENT = "dora-routes/{version} (+https://github.com/Constantin-Hentgen/dora)"
 
 # Mainland France + Corsica. Brittany's western tip is at about -4.8°; Ouessant (-5.1°) would pull in a whole extra
 # 5° column of mostly-Atlantic tiles, so it is left out of the default.

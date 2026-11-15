@@ -1,4 +1,4 @@
-"""FastAPI application. Run with `uvicorn loopwise.server.app:app`.
+"""FastAPI application. Run with `uvicorn dora_routes.server.app:app`.
 
 Milestone 1 only exposes `/health`; the loop API (`/v1/loops`) arrives in milestone 3.
 """
@@ -13,8 +13,8 @@ import httpx
 from fastapi import FastAPI, Response, status
 from pydantic import BaseModel
 
-from loopwise import __version__
-from loopwise.config import Settings, get_settings
+from dora_routes import __version__
+from dora_routes.config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ def create_app(brouter_transport: httpx.AsyncBaseTransport | None = None) -> Fas
     settings = get_settings()
     logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     app = FastAPI(
-        title="loopwise",
+        title="Dora",
         version=__version__,
         summary="Loop routes (start = finish) for running, hiking and cycling, on BRouter and OpenStreetMap.",
         license_info={"name": "MIT", "identifier": "MIT"},
