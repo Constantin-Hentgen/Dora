@@ -1,0 +1,64 @@
+[project]
+name = "loopwise"
+version = "0.0.0"
+description = "Self-hosted loop-route generator (running, hiking, cycling) on BRouter and OpenStreetMap."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.13"
+keywords = ["routing", "brouter", "openstreetmap", "gpx", "running", "cycling", "hiking"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Typing :: Typed",
+]
+# The core (library) stays free of any web framework: FastAPI and uvicorn live in the `server` extra.
+dependencies = [
+    "httpx>=0.28",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.6",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+]
+
+[project.scripts]
+loopwise-segments = "loopwise.segments:main"
+
+[project.urls]
+Homepage = "https://github.com/Constantin-Hentgen/loopwise"
+Documentation = "https://github.com/Constantin-Hentgen/loopwise/wiki"
+Changelog = "https://github.com/Constantin-Hentgen/loopwise/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "loopwise[server]",
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.10"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PL", "N"]
+ignore = ["PLR2004", "PLR0913", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not brouter'"
+markers = [
+    "brouter: integration tests against a live BRouter (docker compose up brouter); run with -m brouter",
+]
