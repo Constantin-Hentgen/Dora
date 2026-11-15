@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.1.0...v0.2.0) (2026-11-15)
+
+
+### Features
+
+* loop generator ported from Bob as a library (running) ([dbd0f92](https://github.com/Constantin-Hentgen/Dora/commit/dbd0f92990e012a29800a4e07d67a73402c89def))
+
+
+### Bug Fixes
+
+* **ops:** BRouter image that reads current segment files ([a729b9a](https://github.com/Constantin-Hentgen/Dora/commit/a729b9a1b2d407262383cac5baa84df1e799c19e))
+
 ## 0.1.0 (2026-11-15)
 
 
