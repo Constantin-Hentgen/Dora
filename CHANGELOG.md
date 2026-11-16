@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.4.0...v0.5.0) (2026-11-16)
+
+
+### Features
+
+* BRouter image with Dora's profiles, usable from another project's stack ([#44](https://github.com/Constantin-Hentgen/Dora/issues/44)) ([ddbab4a](https://github.com/Constantin-Hentgen/Dora/commit/ddbab4a9dfd4362833d67b1f236dd221e735416d))
+
 ## [0.4.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.3.0...v0.4.0) (2026-11-16)
 
 
