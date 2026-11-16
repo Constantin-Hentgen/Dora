@@ -1,4 +1,4 @@
-"""Dora: loop routes (start = finish) of a chosen distance for running, hiking and cycling.
+"""Dora: loop routes (start = finish) of a chosen distance for running, hiking and walking.
 
 The core library never imports a web framework; the HTTP service lives in `dora_routes.server` (extra `server`).
 """

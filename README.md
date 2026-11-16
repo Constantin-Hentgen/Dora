@@ -1,7 +1,7 @@
 # Dora
 
 **Loop routes that start and finish at your door, at the distance you want, on the ways you like.**
-For running, hiking and cycling. Self-hosted, on [BRouter](https://github.com/abrensch/brouter) and OpenStreetMap.
+For travel on foot: running, hiking and walking. Self-hosted, on [BRouter](https://github.com/abrensch/brouter) and OpenStreetMap.
 
 *Named after Dora the Explorer: Dora explores the map, you just run.*
 
@@ -13,7 +13,7 @@ much climb, and how much of it you have never run before.
 
 *8.0 km · 59 % away from cars and crowds · 20 crossings · 65 % on waymarked trails · 25 m climb*
 
-> 🚧 Early development: the library and the HTTP API work; hiking, cycling and custom BRouter profiles are next. See the
+> 🚧 Early development: the library and the HTTP API work; hiking and walking are next. See the
 > [project board](https://github.com/users/Constantin-Hentgen/projects/14).
 
 ## Why

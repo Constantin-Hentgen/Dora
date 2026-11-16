@@ -1,8 +1,8 @@
 """Activities are configuration, not code branches.
 
 An `Activity` says which BRouter profile to route with, how to turn a distance into a triangle, which OSM way classes
-are good or bad for it, how to weigh them, and how strict to be about dead-ends and out-and-backs. Adding cycling or
-hiking means adding an `Activity`, not touching the loop generator.
+are good or bad for it, how to weigh them, and how strict to be about dead-ends and out-and-backs. Adding hiking
+means adding an `Activity`, not touching the loop generator.
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ class Activity:
     crowded_ways: frozenset[str] = CROWDED
     calm_ways: frozenset[str] = CAR_STREETS
     busy_ways: frozenset[str] = BUSY_ROADS
-    # Way classes the activity must not use at all (e.g. footways for road cycling in France). Loops using more than
+    # Way classes the activity must not use at all (e.g. roads for a trail-only hike). Loops using more than
     # `forbidden_tolerance` of them are dropped.
     forbidden_ways: frozenset[str] = frozenset()
     forbidden_tolerance: float = 0.02
@@ -147,7 +147,7 @@ class Activity:
 
 RUNNING = Activity(
     name="running",
-    # profiles/running-deserted.brf, mounted in the BRouter container: costs for car roads, bike paths, pedestrian
+    # profiles/running-deserted.brf, baked into the BRouter image: costs for car roads, bike paths, pedestrian
     # streets and street crossings. The public brouter.de cannot load it, so it gets its hiking profile instead.
     brouter_profile="running-deserted",
     public_brouter_profile="hiking-mountain",

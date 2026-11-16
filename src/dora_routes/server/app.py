@@ -86,7 +86,7 @@ def create_app(brouter_transport: httpx.AsyncBaseTransport | None = None) -> Fas
     app = FastAPI(
         title="Dora",
         version=__version__,
-        summary="Loop routes (start = finish) for running, hiking and cycling, on BRouter and OpenStreetMap.",
+        summary="Loop routes (start = finish) for running, hiking and walking, on BRouter and OpenStreetMap.",
         license_info={"name": "MIT", "identifier": "MIT"},
     )
 
