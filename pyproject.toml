@@ -1,6 +1,6 @@
 [project]
 name = "dora-routes"
-version = "0.4.0"
+version = "0.5.0"
 description = "Self-hosted loop-route generator (running, hiking, cycling) on BRouter and OpenStreetMap."
 readme = "README.md"
 license = "MIT"
