@@ -30,16 +30,20 @@ services:
     # Segment files are rebuilt weekly with BRouter's current lookup table (version 11 since BRouter 1.7.10). An older
     # BRouter refuses them ("lookup version mismatch"), and upstream has published no release image since v1.7.8, so
     # this pins the `master` image of 2026-11-15 (after v1.7.10) by digest. To update: see the wiki, "Self-hosting".
-    image: ${BROUTER_IMAGE:-ghcr.io/abrensch/brouter@sha256:fbc2a0e47e655fb20ab0005c9f5fbc60e6e45e0997092713c1b996bc7cf01711}
+    # BROUTER_IMAGE is the base; brouter.Dockerfile adds Dora's profiles on top of it.
+    image: dora-brouter:local
+    build:
+      context: .
+      dockerfile: brouter.Dockerfile
+      args:
+        BROUTER_IMAGE: ${BROUTER_IMAGE:-ghcr.io/abrensch/brouter@sha256:fbc2a0e47e655fb20ab0005c9f5fbc60e6e45e0997092713c1b996bc7cf01711}
     environment:
       # 4 threads: Dora sends at most 4 routing calls in parallel. 1 GB heap is enough for 150 km bike loops.
       MAXTHREADS: ${BROUTER_MAXTHREADS:-4}
       JAVA_OPTS: ${BROUTER_JAVA_OPTS:--Xmx1024M -Xms128M -Xmn8M -DmaxRunningTime=60 -DuseRFCMimeType=false -DusePOSTRequests=false}
     volumes:
       - segments:/segments4:ro
-      # Custom Dora profiles are mounted next to BRouter's built-in ones (lookups.dat must stay there), one file
-      # per profile; requested as profile=<file name without .brf>.
-      - ./profiles/running-deserted.brf:/profiles2/running-deserted.brf:ro
+      # Dora's custom profiles are inside the image (brouter.Dockerfile), next to the built-in ones.
     # Not published on the host: only Dora talks to it. Uncomment to try BRouter by hand.
     # ports:
     #   - "17777:17777"

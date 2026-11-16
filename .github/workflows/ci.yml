@@ -52,6 +52,10 @@ jobs:
           tags: dora:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Build the BRouter image with Dora's profiles
+        run: |
+          docker compose build brouter
+          docker run --rm --entrypoint ls dora-brouter:local /profiles2/running-deserted.brf /profiles2/lookups.dat
       - name: Smoke test the image
         run: |
           docker run --rm dora:ci python -c "import dora_routes.server.app"
