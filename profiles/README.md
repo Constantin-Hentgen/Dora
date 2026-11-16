@@ -3,9 +3,9 @@
 Custom BRouter routing profiles (`.brf`) used by Dora. They make BRouter *prefer* the right ways while routing (quiet
 paths for running, quiet roads for cycling…) instead of only re-ranking finished loops.
 
-Each profile is mounted into the BRouter container next to the built-in ones (see `docker-compose.yml`), so it is
-requested by its file name without the extension (`profile=running-deserted`). A new profile needs a line in
-`docker-compose.yml`; a test checks that every profile an activity uses is there.
+`brouter.Dockerfile` copies every `*.brf` here into the BRouter image next to the built-in profiles, so a profile is
+requested by its file name without the extension (`profile=running-deserted`). Nothing else to register: add the file,
+rebuild (`docker compose up -d --build`). A test checks that every profile an activity uses exists.
 
 | Profile | Activity | Since |
 |---|---|---|
