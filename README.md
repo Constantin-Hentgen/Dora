@@ -13,7 +13,7 @@ much climb, and how much of it you have never run before.
 
 *8.0 km · 59 % away from cars and crowds · 20 crossings · 65 % on waymarked trails · 25 m climb*
 
-> 🚧 Early development: the library works; the HTTP API comes next. See the
+> 🚧 Early development: the library and the HTTP API work; hiking, cycling and custom BRouter profiles are next. See the
 > [project board](https://github.com/users/Constantin-Hentgen/projects/14).
 
 ## Why
@@ -29,7 +29,11 @@ git clone https://github.com/Constantin-Hentgen/Dora && cd Dora
 cp .env.example .env          # optional: change SEGMENTS_BBOX if you are not in France
 docker compose up -d          # first start downloads the BRouter map tiles (~1.5 GB for France)
 curl localhost:8000/health
+curl -X POST localhost:8000/v1/loops -H 'content-type: application/json' \
+  -d '{"place": "bois de vincennes", "distance_km": 10, "lang": "en"}'
 ```
+
+Interactive API docs: `localhost:8000/docs`. From Python, `DoraClient("http://localhost:8000").find_loops(...)`.
 
 As a library (`pip install dora-routes`, needs a BRouter: the compose stack, or `BROUTER_URL`):
 

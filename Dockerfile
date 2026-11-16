@@ -13,6 +13,9 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra server --no-editable
 
 FROM python:3.13-slim
+LABEL org.opencontainers.image.source="https://github.com/Constantin-Hentgen/Dora" \
+      org.opencontainers.image.description="Dora: loop routes for running, hiking and cycling, on BRouter and OpenStreetMap" \
+      org.opencontainers.image.licenses="MIT"
 # uid 1000, like the BRouter image: both containers can share the segments volume.
 RUN groupadd --gid 1000 dora \
     && useradd --uid 1000 --gid dora --home-dir /app --no-create-home dora \
