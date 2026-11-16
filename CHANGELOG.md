@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.2.0...v0.3.0) (2026-11-16)
+
+
+### Features
+
+* HTTP API v1, typed client and Docker image on GHCR ([#32](https://github.com/Constantin-Hentgen/Dora/issues/32)) ([5505982](https://github.com/Constantin-Hentgen/Dora/commit/5505982d678b829e7dd220c06f824c16db25f70c))
+
 ## [0.2.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.1.0...v0.2.0) (2026-11-15)
 
 
