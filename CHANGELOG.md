@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.3.0...v0.4.0) (2026-11-16)
+
+
+### Features
+
+* running-deserted profile, fewer cars, crowds and crossings ([#40](https://github.com/Constantin-Hentgen/Dora/issues/40)) ([8ca5a8e](https://github.com/Constantin-Hentgen/Dora/commit/8ca5a8ed24833f83192a18ac03faa013135f548d))
+
 ## [0.3.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.2.0...v0.3.0) (2026-11-16)
 
 
