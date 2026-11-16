@@ -6,8 +6,9 @@
 #   0 4 1 * *  cd /path/to/dora && docker compose run --rm segments && docker compose restart brouter
 name: dora
 
+# Built from this checkout (there is no published image).
 x-dora-image: &dora-image
-  image: ${DORA_IMAGE:-ghcr.io/constantin-hentgen/dora:latest}
+  image: ${DORA_IMAGE:-dora:local}
   build: .
 
 services:
