@@ -10,6 +10,7 @@ rebuild (`docker compose up -d --build`). A test checks that every profile an ac
 | Profile | Activity | Since |
 |---|---|---|
 | `running-deserted.brf` | running | v0.4.0 |
+| `hiking-trails.brf` | hiking, walking | v0.6.0 |
 
 The public brouter.de cannot load custom profiles: Dora then falls back to BRouter's `hiking-mountain` for running.
 How the profiles are built and measured: wiki page "Profiles". Compare two profiles on the same start points with

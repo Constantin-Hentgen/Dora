@@ -82,6 +82,7 @@ class Activity:
     # `forbidden_tolerance` of them are dropped.
     forbidden_ways: frozenset[str] = frozenset()
     forbidden_tolerance: float = 0.02
+    caption_crossings: bool = True  # street crossings matter when running; a hiker does not count them
     weights: Weights = field(default_factory=Weights)
     spurs: SpurRules = field(default_factory=SpurRules)
     max_backtrack: float = 0.08  # above: the loop contains an out-and-back; dropped when alternatives exist
@@ -155,7 +156,19 @@ RUNNING = Activity(
     default_pace_min_per_km=6.0,
 )
 
-ACTIVITIES: dict[str, Activity] = {a.name: a for a in (RUNNING,)}
+# Hiking and walking: waymarked trails first, away from cars; a short quiet road to link two trails is fine. Walking is
+# the same activity at a slower pace (`pace_min_per_km`). A climb target is a later feature.
+HIKING = Activity(
+    name="hiking",
+    brouter_profile="hiking-trails",
+    public_brouter_profile="hiking-mountain",
+    distance_km=(5.0, 40.0),
+    default_pace_min_per_km=12.0,  # 5 km/h
+    caption_crossings=False,
+    weights=Weights(marked=1.2, crowded=0.4, busy=2.5, crossings_per_km=0.0),
+)
+
+ACTIVITIES: dict[str, Activity] = {a.name: a for a in (RUNNING, HIKING)}
 
 
 def get_activity(name: str) -> Activity:
