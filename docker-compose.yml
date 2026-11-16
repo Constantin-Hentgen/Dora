@@ -38,8 +38,8 @@ services:
     volumes:
       - segments:/segments4:ro
       # Custom Dora profiles are mounted next to BRouter's built-in ones (lookups.dat must stay there), one file
-      # per profile, e.g. (milestone 4):
-      # - ./profiles/running-deserted.brf:/profiles2/running-deserted.brf:ro
+      # per profile; requested as profile=<file name without .brf>.
+      - ./profiles/running-deserted.brf:/profiles2/running-deserted.brf:ro
     # Not published on the host: only Dora talks to it. Uncomment to try BRouter by hand.
     # ports:
     #   - "17777:17777"

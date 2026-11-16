@@ -97,7 +97,7 @@ async def loop_at(client: BRouterClient, start: LatLon, km: float, bearing: floa
     best: Loop | None = None
     tries: list[tuple[float, float]] = []
     for __ in range(activity.distance_tries):
-        route = await client.route(triangle(start, radius, bearing), activity.brouter_profile)
+        route = await client.route(triangle(start, radius, bearing), activity.profile_for(client.settings))
         raw_km = route.km or path_km(route.points)
         points, left = remove_spurs(route.points, activity.spurs)
         loop = Loop(

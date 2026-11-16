@@ -68,7 +68,7 @@ def test_find_loops_end_to_end_with_captions() -> None:
     assert len(result.loops) == 3 and result.target_km == 8
     assert result.loops[0].caption.startswith(f"{result.loops[0].km:.1f}".replace(".", ",") + " km · 80 % sans")
     params = brouter.requests[0].url.params
-    assert params["profile"] == "hiking-mountain" and params["format"] == "geojson"
+    assert params["profile"] == "running-deserted" and params["format"] == "geojson"
     assert brouter.requests[0].headers["user-agent"].startswith("dora-routes/")
 
 
@@ -127,3 +127,12 @@ def test_find_loops_is_awaitable() -> None:
         find_loops(start={"lat": 48.835, "lon": 2.44}, distance_km=5, count=1, transport=router(FakeBRouter()))
     )
     assert len(result.loops) == 1
+
+
+def test_public_brouter_gets_the_built_in_profile_the_custom_one_cannot_be_loaded_there() -> None:
+    brouter = FakeBRouter()
+    find_loops_sync(
+        start={"lat": 48.835, "lon": 2.44}, distance_km=5, count=1, transport=router(brouter),
+        settings=Settings(brouter_url="https://brouter.de/brouter"),
+    )  # fmt: skip
+    assert {r.url.params["profile"] for r in brouter.requests} == {"hiking-mountain"}
