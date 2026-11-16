@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from dora_routes.brouter import WayStats
+from dora_routes.config import Settings
 from dora_routes.geo import SpurRules
 
 
@@ -67,6 +68,8 @@ class Weights:
 class Activity:
     name: str
     brouter_profile: str
+    # Profile to use when the BRouter is the public brouter.de, which only has its built-in profiles.
+    public_brouter_profile: str | None = None
     # Streets make a loop ~25 % longer than the triangle through its waypoints, as the crow flies.
     route_factor: float = 1.25
     distance_km: tuple[float, float] = (5.0, 30.0)  # typical range, used for validation messages and defaults
@@ -85,6 +88,12 @@ class Activity:
     never_done_min: float = 0.8  # "never done" = at least 80 % of the loop outside past tracks
     distance_tolerance: float = 0.05  # ±5 % of the asked distance
     distance_tries: int = 3  # BRouter calls per bearing to refit the radius
+
+    def profile_for(self, settings: Settings) -> str:
+        """The BRouter profile to request: the custom one, unless BRouter is the public instance."""
+        if self.public_brouter_profile and settings.uses_public_brouter:
+            return self.public_brouter_profile
+        return self.brouter_profile
 
     def shares(self, stats: WayStats) -> Shares:
         """Paths shared with bikes (`bicycle=designated`) are moved from deserted to crowded: on a narrow path, a
@@ -138,9 +147,10 @@ class Activity:
 
 RUNNING = Activity(
     name="running",
-    # Until the custom running-deserted.brf lands (milestone 4): BRouter's hiking profile, which already prefers
-    # paths, parks and quiet streets over main roads.
-    brouter_profile="hiking-mountain",
+    # profiles/running-deserted.brf, mounted in the BRouter container: costs for car roads, bike paths, pedestrian
+    # streets and street crossings. The public brouter.de cannot load it, so it gets its hiking profile instead.
+    brouter_profile="running-deserted",
+    public_brouter_profile="hiking-mountain",
     distance_km=(5.0, 30.0),
     default_pace_min_per_km=6.0,
 )
