@@ -62,6 +62,7 @@ class Weights:
     paved: float = 1.0  # bonus × paved share when the paved surface is asked
     unpaved: float = 1.5  # bonus × unpaved share when the unpaved surface is asked
     novelty: float = 0.5  # bonus × novelty when "never done" is asked
+    climb: float = 2.0  # × relative error to the wanted ascent, capped at 1.5, when a climb target is asked
 
 
 @dataclass(frozen=True)
@@ -121,6 +122,8 @@ class Activity:
         surface: Surface,
         novelty: float | None = None,
         never_done: bool = False,
+        climb_m: int = 0,
+        target_climb_m: int | None = None,
     ) -> float:
         """Higher is better. Close to the distance, no out-and-back, and first of all deserted (safety and calm:
         no cars, no crowds, no bikes, few streets to cross), whatever the surface; the asked surface then adds its
@@ -143,6 +146,8 @@ class Activity:
             score += w.unpaved * (1 - shares.paved)
         if never_done and novelty is not None:
             score += w.novelty * novelty
+        if target_climb_m:
+            score -= w.climb * min(abs(climb_m - target_climb_m) / target_climb_m, 1.5)
         return score
 
 
@@ -157,7 +162,7 @@ RUNNING = Activity(
 )
 
 # Hiking and walking: waymarked trails first, away from cars; a short quiet road to link two trails is fine. Walking is
-# the same activity at a slower pace (`pace_min_per_km`). A climb target is a later feature.
+# the same activity at a slower pace (`pace_min_per_km`). The climb target (`climb_m`) re-ranks the loops by ascent.
 HIKING = Activity(
     name="hiking",
     brouter_profile="hiking-trails",

@@ -6,7 +6,7 @@ from test_api import router
 from test_outputs import make_loop
 
 from dora_routes import LoopRequest, find_loops_sync
-from dora_routes.activities import HIKING
+from dora_routes.activities import HIKING, Shares, Surface
 from dora_routes.captions import caption
 from dora_routes.config import Settings
 
@@ -46,3 +46,13 @@ def test_hiking_end_to_end_with_its_profile(url: str, profile: str, monkeypatch:
     assert {r.url.params["profile"] for r in brouter.requests} == {profile}
     assert result.loops[0].caption.startswith(f"{result.loops[0].km:.1f} km · 100 % on trails away from cars")
     assert "crossing" not in result.loops[0].caption and "waymarked" in result.loops[0].caption
+
+
+def test_climb_target_reranks_by_ascent():
+
+    shares = Shares(deserted=0.5, calm=0.2, busy=0.0, crowded=0.0, paved=0.3, marked=0.2)
+    kw = {"km": 10, "target_km": 10, "shares": shares, "crossings": 0, "backtrack": 0.0, "surface": Surface.MIXED}
+    flat = HIKING.score(**kw, climb_m=20, target_climb_m=400)
+    close = HIKING.score(**kw, climb_m=380, target_climb_m=400)
+    assert close > flat
+    assert HIKING.score(**kw, climb_m=20) == HIKING.score(**kw, climb_m=900)  # no target: ascent is ignored

@@ -35,6 +35,9 @@ class LoopRequest(BaseModel):
     avoid_tracks: list[str] = Field(
         default_factory=list, max_length=1000, description="Past activities as encoded polylines, for novelty."
     )
+    climb_m: int | None = Field(
+        None, ge=10, le=5000, description="Wanted ascent (D+) in metres: loops closest to it come first."
+    )
     never_done: bool = Field(False, description="Require at least 80 % of each loop outside `avoid_tracks`.")
     lang: Literal["en", "fr"] = "en"
 
@@ -102,6 +105,9 @@ class LoopOut(BaseModel):
     id: str = Field(description="Use with GET /v1/loops/{id}.gpx and .png while the result is cached.")
     distance_km: float
     climb_m: int
+    climb_target_met: bool | None = Field(
+        None, description="With `climb_m` asked: whether the loop is within ±25 % of it."
+    )
     bearing: float = Field(description="Direction the loop heads to from the start, in degrees (0 = north).")
     shares: Shares
     crossings: int = Field(description="Pedestrian crossings and traffic lights passed.")

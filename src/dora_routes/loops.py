@@ -143,6 +143,7 @@ def rank(
     count: int,
     done: set[Cell] | None = None,
     never_done: bool = False,
+    target_climb_m: int | None = None,
 ) -> list[Loop]:
     """Filter, score and pick. Pure function over already-routed loops, so the selection rules are easy to test."""
     kept = []
@@ -172,6 +173,8 @@ def rank(
             surface=surface,
             novelty=lp.novelty,
             never_done=never_done,
+            climb_m=lp.climb_m,
+            target_climb_m=target_climb_m,
         )
     # Loops within twice the tolerance (±10 %) of the distance come first; others only fill the remaining slots.
     band = 2 * activity.distance_tolerance
@@ -189,6 +192,7 @@ async def generate(
     count: int = 3,
     done: set[Cell] | None = None,
     never_done: bool = False,
+    target_climb_m: int | None = None,
     budget_s: float = 45.0,
 ) -> list[Loop]:
     """Route all bearings concurrently (the client caps calls in flight), within `budget_s`. Bearings still running
@@ -224,4 +228,5 @@ async def generate(
         count=count,
         done=set() if done is None and never_done else done,  # nothing done yet: everything is new
         never_done=never_done,
+        target_climb_m=target_climb_m,
     )
