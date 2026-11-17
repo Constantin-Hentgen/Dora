@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.6.0...v0.7.0) (2026-11-17)
+
+
+### Features
+
+* climb target, rank loops by wanted ascent ([#60](https://github.com/Constantin-Hentgen/Dora/issues/60)) ([39f334f](https://github.com/Constantin-Hentgen/Dora/commit/39f334fccce446a00c30c29c326b24189604191e))
+* pass by a kind of place (viewpoint, clearing, restaurant…), best effort ([#65](https://github.com/Constantin-Hentgen/Dora/issues/65)) ([20ae360](https://github.com/Constantin-Hentgen/Dora/commit/20ae360b3ca1940c8e245ce87a0b02c93376b5be))
+
 ## [0.6.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.5.0...v0.6.0) (2026-11-17)
 
 
