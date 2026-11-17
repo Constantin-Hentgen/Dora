@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.5.0...v0.6.0) (2026-11-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* Dora is by-foot only (running, hiking, walking); drop speed_kmh ([#50](https://github.com/Constantin-Hentgen/Dora/issues/50))
+
+### Features
+
+* hiking and walking activity with the hiking-trails profile ([#54](https://github.com/Constantin-Hentgen/Dora/issues/54)) ([7b660a0](https://github.com/Constantin-Hentgen/Dora/commit/7b660a0d42c6d28daabbe3a9890246da053ceb7f))
+
+
+### Miscellaneous
+
+* Dora is by-foot only (running, hiking, walking); drop speed_kmh ([#50](https://github.com/Constantin-Hentgen/Dora/issues/50)) ([46cfa1a](https://github.com/Constantin-Hentgen/Dora/commit/46cfa1a0491afab436df37a382c9780535c247d7)), closes [#49](https://github.com/Constantin-Hentgen/Dora/issues/49)
+
 ## [0.5.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.4.0...v0.5.0) (2026-11-16)
 
 
