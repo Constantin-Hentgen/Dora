@@ -23,6 +23,7 @@ from dora_routes.models import (
     LoopOut,
     LoopRequest,
     LoopsResponse,
+    PassedPlace,
     PlaceOut,
     Shares,
 )
@@ -54,6 +55,7 @@ def to_out(
     png: bytes | None,
     with_gpx: bool,
     target_climb_m: int | None = None,
+    wanted: list[str] | None = None,
 ) -> LoopOut:
     coords = [[lon, lat, *([ele] if ele is not None else [])] for lat, lon, ele in loop.points]
     s = loop.shares
@@ -61,6 +63,8 @@ def to_out(
         id=loop_id,
         distance_km=round(loop.km, 2),
         climb_m=loop.climb_m,
+        passes=[PassedPlace(kind=p.kind, name=p.name, lat=p.lat, lon=p.lon) for p in loop.passes],
+        pass_by_met=(None if not wanted else {p.kind for p in loop.passes} >= set(wanted)),
         climb_target_met=_climb_met(loop.climb_m, target_climb_m),
         bearing=loop.bearing,
         shares=Shares(deserted=s.deserted, paved=s.paved, crowded=s.crowded, busy=s.busy, marked=s.marked),
@@ -132,6 +136,7 @@ def build_router(cache: ResultCache, transport: httpx.AsyncBaseTransport | None,
                     png=png,
                     with_gpx=bool(include and "gpx" in include),
                     target_climb_m=result.request.climb_m,
+                    wanted=result.request.pass_by,
                 )
             )
         start = Coordinates(lat=result.start[0], lon=result.start[1])

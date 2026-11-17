@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     nominatim_url: str = Field(
         "https://nominatim.openstreetmap.org/search", description="Nominatim search endpoint for place names."
     )
+    overpass_url: str = Field(
+        "https://overpass-api.de/api/interpreter",
+        description="Overpass endpoint for places to pass by (viewpoints, restaurants…). Self-host it for volume use.",
+    )
     tile_url: str = Field(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         description="Map tile URL template. Point it at a self-hosted or commercial tile server for volume use.",

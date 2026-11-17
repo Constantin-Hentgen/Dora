@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from dora_routes.activities import ACTIVITIES, Surface, get_activity
 from dora_routes.geo import decode_polyline
+from dora_routes.pois import KINDS
 
 
 class Coordinates(BaseModel):
@@ -38,6 +39,11 @@ class LoopRequest(BaseModel):
     climb_m: int | None = Field(
         None, ge=10, le=5000, description="Wanted ascent (D+) in metres: loops closest to it come first."
     )
+    pass_by: list[str] = Field(
+        default_factory=list,
+        max_length=4,
+        description=f"Kinds of place to pass by, best effort. Any of: {', '.join(KINDS)}.",
+    )
     never_done: bool = Field(False, description="Require at least 80 % of each loop outside `avoid_tracks`.")
     lang: Literal["en", "fr"] = "en"
 
@@ -46,6 +52,14 @@ class LoopRequest(BaseModel):
     def _known_activity(cls, value: str) -> str:
         get_activity(value)
         return value
+
+    @field_validator("pass_by")
+    @classmethod
+    def _known_kinds(cls, kinds: list[str]) -> list[str]:
+        unknown = [k for k in kinds if k not in KINDS]
+        if unknown:
+            raise ValueError(f"unknown kind(s) {unknown}; choose from {list(KINDS)}")
+        return list(dict.fromkeys(kinds))
 
     @field_validator("avoid_tracks")
     @classmethod
@@ -101,6 +115,13 @@ class GeoJSONFeature(BaseModel):
     properties: dict[str, str | float | int | None] = Field(default_factory=dict)
 
 
+class PassedPlace(BaseModel):
+    kind: str
+    name: str
+    lat: float
+    lon: float
+
+
 class LoopOut(BaseModel):
     id: str = Field(description="Use with GET /v1/loops/{id}.gpx and .png while the result is cached.")
     distance_km: float
@@ -108,6 +129,8 @@ class LoopOut(BaseModel):
     climb_target_met: bool | None = Field(
         None, description="With `climb_m` asked: whether the loop is within ±25 % of it."
     )
+    passes: list[PassedPlace] = Field(default_factory=list, description="Wanted places within 50 m of the path.")
+    pass_by_met: bool | None = Field(None, description="With `pass_by` asked: every kind is passed at least once.")
     bearing: float = Field(description="Direction the loop heads to from the start, in degrees (0 = north).")
     shares: Shares
     crossings: int = Field(description="Pedestrian crossings and traffic lights passed.")

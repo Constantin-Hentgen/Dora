@@ -37,6 +37,18 @@ def offset(lat: float, lon: float, km: float, bearing_deg: float) -> LatLon:
     return lat + dlat, lon + dlon
 
 
+def bearing_to(a: Sequence[float], b: Sequence[float]) -> float:
+    """Direction from `a` to `b` in degrees (0 = north); flat-earth, like `offset`."""
+    dy = b[0] - a[0]
+    dx = (b[1] - a[1]) * math.cos(math.radians(a[0]))
+    return math.degrees(math.atan2(dx, dy)) % 360
+
+
+def distance_to_path_km(point: Sequence[float], points: Sequence[Sequence[float]]) -> float:
+    """Smallest distance from `point` to the vertices of a path (loops have a vertex every few metres)."""
+    return min(haversine_km(point, p) for p in points)
+
+
 def path_km(points: Sequence[Sequence[float]]) -> float:
     return sum(haversine_km(p, q) for p, q in itertools.pairwise(points))
 
