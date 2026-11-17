@@ -90,6 +90,7 @@ async def find_loops(
             count=req.count,
             done=done,
             never_done=req.never_done,
+            target_climb_m=req.climb_m,
             budget_s=budget,
         )
     for loop in loops:

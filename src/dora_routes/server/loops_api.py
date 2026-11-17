@@ -41,13 +41,27 @@ def gpx_name(loop: Loop, place: str | None) -> str:
     return f"Dora · {place or 'loop'} · {loop.km:.1f} km"
 
 
-def to_out(loop: Loop, loop_id: str, *, base: str, name: str, png: bytes | None, with_gpx: bool) -> LoopOut:
+def _climb_met(climb_m: int, target: int | None) -> bool | None:
+    return abs(climb_m - target) <= 0.25 * target if target else None
+
+
+def to_out(
+    loop: Loop,
+    loop_id: str,
+    *,
+    base: str,
+    name: str,
+    png: bytes | None,
+    with_gpx: bool,
+    target_climb_m: int | None = None,
+) -> LoopOut:
     coords = [[lon, lat, *([ele] if ele is not None else [])] for lat, lon, ele in loop.points]
     s = loop.shares
     return LoopOut(
         id=loop_id,
         distance_km=round(loop.km, 2),
         climb_m=loop.climb_m,
+        climb_target_met=_climb_met(loop.climb_m, target_climb_m),
         bearing=loop.bearing,
         shares=Shares(deserted=s.deserted, paved=s.paved, crowded=s.crowded, busy=s.busy, marked=s.marked),
         crossings=loop.crossings,
@@ -110,7 +124,15 @@ def build_router(cache: ResultCache, transport: httpx.AsyncBaseTransport | None,
             if png:
                 cache.get(loop_id).png = png  # type: ignore[union-attr]
             out.append(
-                to_out(loop, loop_id, base=base, name=name, png=png, with_gpx=bool(include and "gpx" in include))
+                to_out(
+                    loop,
+                    loop_id,
+                    base=base,
+                    name=name,
+                    png=png,
+                    with_gpx=bool(include and "gpx" in include),
+                    target_climb_m=result.request.climb_m,
+                )
             )
         start = Coordinates(lat=result.start[0], lon=result.start[1])
         place_out = (
