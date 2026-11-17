@@ -25,6 +25,8 @@ TEXT: dict[str, dict[str, str]] = {
         "climb": "{m} m climb",
         "novelty": "{pct} % never done",
         "novelty.running": "{pct} % never run",
+        "deserted.hiking": "{pct} % on trails away from cars",
+        "novelty.hiking": "{pct} % never hiked",
     },
     "fr": {
         "paved": "{pct} % bitume",
@@ -36,6 +38,8 @@ TEXT: dict[str, dict[str, str]] = {
         "climb": "D+ {m} m",
         "novelty": "{pct} % jamais fait",
         "novelty.running": "{pct} % jamais couru",
+        "deserted.hiking": "{pct} % sur sentiers loin des voitures",
+        "novelty.hiking": "{pct} % jamais randonné",
     },
 }
 
@@ -51,18 +55,23 @@ def _plural(n: int, lang: Lang) -> bool:
 
 def caption(loop: Loop, activity: Activity, surface: Surface = Surface.MIXED, lang: Lang = "en") -> str:
     t = TEXT[lang]
+
+    def text(key: str) -> str:  # the activity's own wording when it has one
+        return t.get(f"{key}.{activity.name}", t[key])
+
     pct = lambda share: f"{share * 100:.0f}"  # noqa: E731
     parts = [_km(loop.km, lang)]
     if surface is Surface.PAVED:
         parts.append(t["paved"].format(pct=pct(loop.shares.paved)))
     elif surface is Surface.UNPAVED:
         parts.append(t["unpaved"].format(pct=pct(1 - loop.shares.paved)))
-    parts.append(t["deserted"].format(pct=pct(loop.shares.deserted)))
-    parts.append(t["crossings" if _plural(loop.crossings, lang) else "crossing"].format(n=loop.crossings))
+    parts.append(text("deserted").format(pct=pct(loop.shares.deserted)))
+    if activity.caption_crossings:
+        parts.append(t["crossings" if _plural(loop.crossings, lang) else "crossing"].format(n=loop.crossings))
     if loop.shares.marked >= MARKED_MIN:
         parts.append(t["marked"].format(pct=pct(loop.shares.marked)))
     if loop.climb_m >= CLIMB_MIN_M:
         parts.append(t["climb"].format(m=loop.climb_m))
     if loop.novelty is not None:
-        parts.append(t.get(f"novelty.{activity.name}", t["novelty"]).format(pct=pct(loop.novelty)))
+        parts.append(text("novelty").format(pct=pct(loop.novelty)))
     return " · ".join(parts)

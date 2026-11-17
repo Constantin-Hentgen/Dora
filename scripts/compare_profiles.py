@@ -22,7 +22,7 @@ import statistics
 import time
 from dataclasses import dataclass, replace
 
-from dora_routes import RUNNING
+from dora_routes.activities import Activity, get_activity
 from dora_routes.brouter import BRouterClient
 from dora_routes.config import Settings
 from dora_routes.loops import Loop, generate
@@ -51,6 +51,7 @@ class Row:
     deserted: float
     crowded: float
     busy: float
+    marked: float
     crossings_per_km: float
     error: float
     seconds: float
@@ -67,14 +68,15 @@ def summarize(place: str, loops: list[Loop], km: float, seconds: float) -> Row:
         deserted=mean([lp.shares.deserted for lp in loops]),
         crowded=mean([lp.shares.crowded for lp in loops]),
         busy=mean([lp.shares.busy for lp in loops]),
+        marked=mean([lp.shares.marked for lp in loops]),
         crossings_per_km=mean([lp.crossings_per_km for lp in loops]),
         error=mean([abs(lp.km - km) / km for lp in loops]),
         seconds=seconds,
     )
 
 
-async def run_profile(settings: Settings, profile: str, km: float, count: int) -> list[Row]:
-    activity = replace(RUNNING, brouter_profile=profile)
+async def run_profile(settings: Settings, base: Activity, profile: str, km: float, count: int) -> list[Row]:
+    activity = replace(base, brouter_profile=profile, public_brouter_profile=None)  # exactly this profile
     rows = []
     async with BRouterClient(settings) as client:
         for place, start in STARTS.items():
@@ -91,8 +93,8 @@ def pct(x: float) -> str:
 
 def render(before: list[Row], after: list[Row], names: tuple[str, str]) -> str:
     out = [
-        "| Start | Loops | Deserted | Crowded | Busy roads | Crossings/km | Distance error |",
-        "|---|---|---|---|---|---|---|",
+        "| Start | Loops | Deserted | Waymarked | Crowded | Busy roads | Crossings/km | Distance error |",
+        "|---|---|---|---|---|---|---|---|",
     ]
 
     def cell(b: float, a: float, fmt) -> str:
@@ -101,7 +103,7 @@ def render(before: list[Row], after: list[Row], names: tuple[str, str]) -> str:
     for b, a in zip(before, after, strict=True):
         out.append(
             f"| {b.place} | {b.loops} → {a.loops} | {cell(b.deserted, a.deserted, pct)} | "
-            f"{cell(b.crowded, a.crowded, pct)} | {cell(b.busy, a.busy, pct)} | "
+            f"{cell(b.marked, a.marked, pct)} | {cell(b.crowded, a.crowded, pct)} | {cell(b.busy, a.busy, pct)} | "
             f"{cell(b.crossings_per_km, a.crossings_per_km, lambda v: f'{v:.1f}')} | "
             f"{cell(b.error, a.error, pct)} |"
         )
@@ -112,7 +114,8 @@ def render(before: list[Row], after: list[Row], names: tuple[str, str]) -> str:
 
     out.append(
         f"| **Mean** ({len(both)} starts) | | **{cell(avg('deserted', 0), avg('deserted', 1), pct)}** | "
-        f"{cell(avg('crowded', 0), avg('crowded', 1), pct)} | {cell(avg('busy', 0), avg('busy', 1), pct)} | "
+        f"{cell(avg('marked', 0), avg('marked', 1), pct)} | {cell(avg('crowded', 0), avg('crowded', 1), pct)} | "
+        f"{cell(avg('busy', 0), avg('busy', 1), pct)} | "
         f"**{cell(avg('crossings_per_km', 0), avg('crossings_per_km', 1), lambda v: f'{v:.1f}')}** | "
         f"{cell(avg('error', 0), avg('error', 1), pct)} |"
     )
@@ -125,12 +128,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--before", default="hiking-mountain", help="BRouter profile used as the baseline")
     parser.add_argument("--after", default="running-deserted", help="BRouter profile to evaluate")
+    parser.add_argument("--activity", default="running", help="activity whose categories and scoring are used")
     parser.add_argument("--km", type=float, default=8.0, help="wanted loop distance")
     parser.add_argument("--count", type=int, default=3, help="loops per start (as `count` in the API)")
     args = parser.parse_args()
     settings = Settings()
-    before = asyncio.run(run_profile(settings, args.before, args.km, args.count))
-    after = asyncio.run(run_profile(settings, args.after, args.km, args.count))
+    activity = get_activity(args.activity)
+    before = asyncio.run(run_profile(settings, activity, args.before, args.km, args.count))
+    after = asyncio.run(run_profile(settings, activity, args.after, args.km, args.count))
     print(render(before, after, (args.before, args.after)))
 
 
