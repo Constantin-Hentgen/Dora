@@ -23,8 +23,9 @@ from dora_routes.captions import caption
 from dora_routes.config import Settings, get_settings
 from dora_routes.geo import LatLon, decode_polyline, visited_cells
 from dora_routes.geocode import Geocoder, Place
-from dora_routes.loops import Loop, generate
+from dora_routes.loops import Loop, generate, radius_for
 from dora_routes.models import LoopRequest
+from dora_routes.pois import PoiFinder
 
 _geocoders: dict[int, Geocoder] = {}
 
@@ -79,6 +80,10 @@ async def find_loops(
 
     done = visited_cells(decode_polyline(t) for t in req.avoid_tracks) if req.avoid_tracks else None
     km = req.target_km()
+    pois = []
+    if req.pass_by:
+        radius = radius_for(km, activity) * 1.5
+        pois = await PoiFinder(settings, transport).find(start, radius, req.pass_by)
     budget = max(1.0, settings.request_timeout_s - (time.monotonic() - began))
     async with BRouterClient(settings, transport) as client:
         loops = await generate(
@@ -91,6 +96,8 @@ async def find_loops(
             done=done,
             never_done=req.never_done,
             target_climb_m=req.climb_m,
+            pois=pois,
+            wanted=req.pass_by,
             budget_s=budget,
         )
     for loop in loops:

@@ -23,6 +23,7 @@ TEXT: dict[str, dict[str, str]] = {
         "crossings": "{n} crossings",
         "marked": "{pct} % on waymarked trails",
         "climb": "{m} m climb",
+        "via": "via {names}",
         "novelty": "{pct} % never done",
         "novelty.running": "{pct} % never run",
         "deserted.hiking": "{pct} % on trails away from cars",
@@ -36,6 +37,7 @@ TEXT: dict[str, dict[str, str]] = {
         "crossings": "{n} traversées",
         "marked": "{pct} % sur sentiers balisés",
         "climb": "D+ {m} m",
+        "via": "via {names}",
         "novelty": "{pct} % jamais fait",
         "novelty.running": "{pct} % jamais couru",
         "deserted.hiking": "{pct} % sur sentiers loin des voitures",
@@ -72,6 +74,9 @@ def caption(loop: Loop, activity: Activity, surface: Surface = Surface.MIXED, la
         parts.append(t["marked"].format(pct=pct(loop.shares.marked)))
     if loop.climb_m >= CLIMB_MIN_M:
         parts.append(t["climb"].format(m=loop.climb_m))
+    names = list(dict.fromkeys(p.name for p in loop.passes if p.name))[:2]
+    if names:
+        parts.append(t["via"].format(names=", ".join(names)))
     if loop.novelty is not None:
         parts.append(text("novelty").format(pct=pct(loop.novelty)))
     return " · ".join(parts)

@@ -17,11 +17,15 @@ from dora_routes.geo import (
     Point,
     backtrack,
     bearing_gap,
+    bearing_to,
+    distance_to_path_km,
+    haversine_km,
     novelty,
     offset,
     path_km,
     remove_spurs,
 )
+from dora_routes.pois import Poi
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +34,10 @@ BEARINGS = 6
 BEARINGS_NEVER_DONE = 8
 # Distinct loops: bearings at least 90° apart, relaxed to 60° when there are not enough.
 BEARING_GAPS = (90.0, 60.0)
+# A wanted place counts as passed when the path comes this close; loops through places are tried at most this many.
+PASS_BY_KM = 0.05
+MAX_VIA_LOOPS = 4
+VIA_RADIUS_RANGE = (0.5, 1.4)  # a place is a candidate waypoint when it is this far, as a share of the loop radius
 
 
 @dataclass
@@ -48,6 +56,8 @@ class Loop:
     novelty: float | None = None
     score: float = 0.0
     caption: str = ""
+    passes: list[Poi] = field(default_factory=list)  # wanted places within PASS_BY_KM of the path
+    via: Poi | None = None  # the place this loop was routed through
 
     @property
     def crossings(self) -> int:
@@ -90,14 +100,23 @@ def next_radius(tries: Sequence[tuple[float, float]], target_km: float) -> float
     return r * target_km / k
 
 
-async def loop_at(client: BRouterClient, start: LatLon, km: float, bearing: float, activity: Activity) -> Loop | None:
+async def loop_at(
+    client: BRouterClient, start: LatLon, km: float, bearing: float, activity: Activity, *, via: Poi | None = None
+) -> Loop | None:
     """Best loop towards `bearing`. The radius is refitted from the measured length, up to `distance_tries` calls,
-    until the loop (after spur removal) is within the tolerance."""
+    until the loop (after spur removal) is within the tolerance. With `via`, the first waypoint is that place and
+    only the second one moves (60° further round) to fit the distance."""
     radius = radius_for(km, activity)
+    fixed = (via.lat, via.lon) if via else None
+    if fixed:
+        radius = haversine_km(start, fixed)  # a first try close to an equilateral triangle
     best: Loop | None = None
     tries: list[tuple[float, float]] = []
     for __ in range(activity.distance_tries):
-        route = await client.route(triangle(start, radius, bearing), activity.profile_for(client.settings))
+        waypoints = triangle(start, radius, bearing)
+        if fixed:
+            waypoints = [start, fixed, offset(*start, radius, bearing + 60), start]
+        route = await client.route(waypoints, activity.profile_for(client.settings))
         raw_km = route.km or path_km(route.points)
         points, left = remove_spurs(route.points, activity.spurs)
         loop = Loop(
@@ -110,6 +129,7 @@ async def loop_at(client: BRouterClient, start: LatLon, km: float, bearing: floa
             shares=activity.shares(route.stats),
             spurs_left=left,
             spurs_cut=len(route.points) - len(points),
+            via=via,
         )
         if best is None or (loop.spurs_left, abs(loop.km - km)) < (best.spurs_left, abs(best.km - km)):
             best = loop
@@ -120,6 +140,31 @@ async def loop_at(client: BRouterClient, start: LatLon, km: float, bearing: floa
         tries.append((radius, loop.km))
         radius = next_radius(tries, km)
     return best
+
+
+def via_candidates(
+    start: LatLon, km: float, activity: Activity, pois: Sequence[Poi], wanted: Sequence[str]
+) -> list[Poi]:
+    """Places worth routing through: about a loop radius away, one kind after the other, in different directions."""
+    radius = radius_for(km, activity)
+    low, high = (radius * f for f in VIA_RADIUS_RANGE)
+    near = [p for p in pois if low <= haversine_km(start, (p.lat, p.lon)) <= high]
+    # Closest to the ideal radius first within each kind, kinds taking turns.
+    by_kind = {
+        kind: sorted(
+            (p for p in near if p.kind == kind), key=lambda p: abs(haversine_km(start, (p.lat, p.lon)) - radius)
+        )
+        for kind in wanted
+    }
+    chosen: list[Poi] = []
+    for rank_ in range(len(near)):
+        for kind in wanted:
+            if rank_ < len(by_kind[kind]) and len(chosen) < MAX_VIA_LOOPS:
+                p = by_kind[kind][rank_]
+                direction = bearing_to(start, (p.lat, p.lon))
+                if all(bearing_gap(direction, bearing_to(start, (c.lat, c.lon))) >= 60 for c in chosen):
+                    chosen.append(p)
+    return chosen
 
 
 def pick_distinct(loops: Sequence[Loop], count: int) -> list[Loop]:
@@ -144,6 +189,8 @@ def rank(
     done: set[Cell] | None = None,
     never_done: bool = False,
     target_climb_m: int | None = None,
+    pois: Sequence[Poi] = (),
+    wanted: Sequence[str] = (),
 ) -> list[Loop]:
     """Filter, score and pick. Pure function over already-routed loops, so the selection rules are easy to test."""
     kept = []
@@ -157,6 +204,7 @@ def rank(
             continue
         lp.backtrack = backtrack(lp.points)
         lp.novelty = novelty(lp.points, done) if done is not None else None
+        lp.passes = [p for p in pois if distance_to_path_km((p.lat, p.lon), lp.points) <= PASS_BY_KM]
         kept.append(lp)
     kept = [lp for lp in kept if lp.backtrack <= activity.max_backtrack] or kept  # no U-turns when possible
     if never_done:
@@ -175,6 +223,7 @@ def rank(
             never_done=never_done,
             climb_m=lp.climb_m,
             target_climb_m=target_climb_m,
+            pass_by=len({p.kind for p in lp.passes} & set(wanted)) / len(set(wanted)) if wanted else 0.0,
         )
     # Loops within twice the tolerance (±10 %) of the distance come first; others only fill the remaining slots.
     band = 2 * activity.distance_tolerance
@@ -193,13 +242,21 @@ async def generate(
     done: set[Cell] | None = None,
     never_done: bool = False,
     target_climb_m: int | None = None,
+    pois: Sequence[Poi] = (),
+    wanted: Sequence[str] = (),
     budget_s: float = 45.0,
 ) -> list[Loop]:
     """Route all bearings concurrently (the client caps calls in flight), within `budget_s`. Bearings still running
     when the budget is spent are cancelled and ignored; results keep bearing order, so output is deterministic."""
     n = BEARINGS_NEVER_DONE if never_done else BEARINGS
     bearings = [i * 360 / n for i in range(n)]
+    vias = via_candidates(start, km, activity, pois, wanted) if wanted else []
     tasks = [asyncio.create_task(loop_at(client, start, km, b, activity)) for b in bearings]
+    tasks += [
+        asyncio.create_task(loop_at(client, start, km, bearing_to(start, (p.lat, p.lon)), activity, via=p))
+        for p in vias
+    ]
+    bearings += [bearing_to(start, (p.lat, p.lon)) for p in vias]
     began = time.monotonic()
     __, late = await asyncio.wait(tasks, timeout=budget_s)
     for t in late:
@@ -229,4 +286,6 @@ async def generate(
         done=set() if done is None and never_done else done,  # nothing done yet: everything is new
         never_done=never_done,
         target_climb_m=target_climb_m,
+        pois=pois,
+        wanted=wanted,
     )

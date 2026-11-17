@@ -62,6 +62,7 @@ class Weights:
     paved: float = 1.0  # bonus × paved share when the paved surface is asked
     unpaved: float = 1.5  # bonus × unpaved share when the unpaved surface is asked
     novelty: float = 0.5  # bonus × novelty when "never done" is asked
+    pass_by: float = 1.5  # bonus × share of the wanted kinds of place the loop passes
     climb: float = 2.0  # × relative error to the wanted ascent, capped at 1.5, when a climb target is asked
 
 
@@ -124,6 +125,7 @@ class Activity:
         never_done: bool = False,
         climb_m: int = 0,
         target_climb_m: int | None = None,
+        pass_by: float = 0.0,
     ) -> float:
         """Higher is better. Close to the distance, no out-and-back, and first of all deserted (safety and calm:
         no cars, no crowds, no bikes, few streets to cross), whatever the surface; the asked surface then adds its
@@ -146,6 +148,7 @@ class Activity:
             score += w.unpaved * (1 - shares.paved)
         if never_done and novelty is not None:
             score += w.novelty * novelty
+        score += w.pass_by * pass_by
         if target_climb_m:
             score -= w.climb * min(abs(climb_m - target_climb_m) / target_climb_m, 1.5)
         return score
