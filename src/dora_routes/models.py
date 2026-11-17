@@ -26,8 +26,9 @@ class LoopRequest(BaseModel):
     near: Coordinates | None = Field(None, description="Where to look first when geocoding `place`.")
     distance_km: float | None = Field(None, ge=1, le=300, description="Wanted length. Or give `duration_min`.")
     duration_min: float | None = Field(None, gt=0, le=1440, description="Wanted duration, turned into a distance.")
-    pace_min_per_km: float | None = Field(None, gt=0, le=30, description="Pace for `duration_min` (running, hiking).")
-    speed_kmh: float | None = Field(None, gt=0, le=80, description="Speed for `duration_min` (cycling).")
+    pace_min_per_km: float | None = Field(
+        None, gt=0, le=30, description="Pace for `duration_min`; default per activity."
+    )
     activity: str = Field("running", description=f"One of: {', '.join(ACTIVITIES)}.")
     surface: Surface = Surface.MIXED
     count: int = Field(3, ge=1, le=5, description="Number of distinct loops wanted.")
@@ -59,8 +60,6 @@ class LoopRequest(BaseModel):
             raise ValueError("give exactly one of `start` or `place`")
         if (self.distance_km is None) == (self.duration_min is None):
             raise ValueError("give exactly one of `distance_km` or `duration_min`")
-        if self.pace_min_per_km is not None and self.speed_kmh is not None:
-            raise ValueError("give `pace_min_per_km` or `speed_kmh`, not both")
         if self.distance_km is None and self.target_km() < 1:
             raise ValueError("the duration and pace give less than 1 km")
         return self
@@ -69,8 +68,6 @@ class LoopRequest(BaseModel):
         if self.distance_km is not None:
             return self.distance_km
         assert self.duration_min is not None
-        if self.speed_kmh is not None:
-            return self.duration_min / 60 * self.speed_kmh
         pace = self.pace_min_per_km or get_activity(self.activity).default_pace_min_per_km
         return self.duration_min / pace
 

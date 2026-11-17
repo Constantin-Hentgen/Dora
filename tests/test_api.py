@@ -55,7 +55,6 @@ def test_duration_becomes_distance() -> None:
     start = {"lat": 48.8, "lon": 2.3}
     assert LoopRequest(start=start, duration_min=60).target_km() == 10  # running default 6:00 min/km
     assert LoopRequest(start=start, duration_min=45, pace_min_per_km=4.5).target_km() == 10
-    assert LoopRequest(start=start, duration_min=90, speed_kmh=24).target_km() == 36
 
 
 def test_find_loops_end_to_end_with_captions() -> None:

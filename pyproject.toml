@@ -1,12 +1,12 @@
 [project]
 name = "dora-routes"
 version = "0.5.0"
-description = "Self-hosted loop-route generator (running, hiking, cycling) on BRouter and OpenStreetMap."
+description = "Self-hosted loop-route generator (running, hiking, walking) on BRouter and OpenStreetMap."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.13"
-keywords = ["routing", "brouter", "openstreetmap", "gpx", "running", "cycling", "hiking"]
+keywords = ["routing", "brouter", "openstreetmap", "gpx", "running", "hiking", "walking"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.13",

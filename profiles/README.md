@@ -1,7 +1,7 @@
 # BRouter profiles
 
 Custom BRouter routing profiles (`.brf`) used by Dora. They make BRouter *prefer* the right ways while routing (quiet
-paths for running, quiet roads for cycling…) instead of only re-ranking finished loops.
+paths for running, waymarked trails for hiking…) instead of only re-ranking finished loops.
 
 `brouter.Dockerfile` copies every `*.brf` here into the BRouter image next to the built-in profiles, so a profile is
 requested by its file name without the extension (`profile=running-deserted`). Nothing else to register: add the file,
