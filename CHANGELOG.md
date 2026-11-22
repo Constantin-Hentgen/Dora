@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/Constantin-Hentgen/Dora/compare/v0.8.0...v0.8.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* widen the distance band to 25 % when a climb target is asked ([#75](https://github.com/Constantin-Hentgen/Dora/issues/75)) ([4598c83](https://github.com/Constantin-Hentgen/Dora/commit/4598c839047d13c9c7935195e65c3f988f601832))
+
 ## [0.8.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.7.0...v0.8.0) (2026-11-22)
 
 
