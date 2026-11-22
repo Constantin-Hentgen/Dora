@@ -35,6 +35,9 @@ BEARINGS = 6
 BEARINGS_NEVER_DONE = 8
 # Distinct loops: bearings at least 90° apart, relaxed to 60° when there are not enough.
 BEARING_GAPS = (90.0, 60.0)
+# With a climb target the distance band is wider: in steep terrain a loop with the wanted climb is often 15-25 % off
+# the distance, and it must not lose to a flat loop only for that.
+CLIMB_DISTANCE_BAND = 0.25
 # A wanted place counts as passed when the path comes this close; loops through places are tried at most this many.
 PASS_BY_KM = 0.05
 MAX_VIA_LOOPS = 4
@@ -306,7 +309,7 @@ def rank(
             pass_by=len({p.kind for p in lp.passes} & set(wanted)) / len(set(wanted)) if wanted else 0.0,
         )
     # Loops within twice the tolerance (±10 %) of the distance come first; others only fill the remaining slots.
-    band = 2 * activity.distance_tolerance
+    band = CLIMB_DISTANCE_BAND if target_climb_m else 2 * activity.distance_tolerance
     kept.sort(key=lambda lp: (abs(lp.km - target_km) / target_km <= band, lp.score), reverse=True)
     return pick_distinct(kept, count)
 
