@@ -43,6 +43,9 @@ class Shares:
     marked: float
 
 
+CLIMB_SCALE_M = 200
+
+
 @dataclass(frozen=True)
 class Weights:
     """Score terms. The score is only used to rank loops of one request, so only ratios between weights matter.
@@ -63,7 +66,7 @@ class Weights:
     unpaved: float = 1.5  # bonus × unpaved share when the unpaved surface is asked
     novelty: float = 0.5  # bonus × novelty when "never done" is asked
     pass_by: float = 1.5  # bonus × share of the wanted kinds of place the loop passes
-    climb: float = 2.0  # × relative error to the wanted ascent, capped at 1.5, when a climb target is asked
+    climb: float = 2.0  # × error to the wanted ascent (relative, min. 200 m scale, cap 3), if asked
 
 
 @dataclass(frozen=True)
@@ -150,7 +153,9 @@ class Activity:
             score += w.novelty * novelty
         score += w.pass_by * pass_by
         if target_climb_m:
-            score -= w.climb * min(abs(climb_m - target_climb_m) / target_climb_m, 1.5)
+            # Error relative to the target, but never to less than CLIMB_SCALE_M: for a small target every steep loop
+            # would otherwise hit the cap and a 460 m loop would rank like a 620 m one.
+            score -= w.climb * min(abs(climb_m - target_climb_m) / max(target_climb_m, CLIMB_SCALE_M), 3.0)
         return score
 
 
