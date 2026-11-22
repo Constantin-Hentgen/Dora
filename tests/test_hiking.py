@@ -9,6 +9,7 @@ from dora_routes import LoopRequest, find_loops_sync
 from dora_routes.activities import HIKING, Shares, Surface
 from dora_routes.captions import caption
 from dora_routes.config import Settings
+from dora_routes.loops import rank
 
 
 def test_hiking_captions_are_for_hikers_not_street_crossers() -> None:
@@ -56,3 +57,13 @@ def test_climb_target_reranks_by_ascent():
     close = HIKING.score(**kw, climb_m=380, target_climb_m=400)
     assert close > flat
     assert HIKING.score(**kw, climb_m=20) == HIKING.score(**kw, climb_m=900)  # no target: ascent is ignored
+
+
+def test_climb_target_widens_the_distance_band() -> None:
+    flat = make_loop(km=12.0, climb=80)
+    steep = make_loop(km=14.5, climb=600)  # 21 % too long: outside the usual ±10 % band
+    for lp in (flat, steep):
+        lp.spurs_left = 0
+    kw = {"target_km": 12, "activity": HIKING, "surface": Surface.MIXED, "count": 1}
+    assert rank([flat, steep], **kw)[0] is flat
+    assert rank([flat, steep], **kw, target_climb_m=600)[0] is steep
