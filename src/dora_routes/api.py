@@ -97,6 +97,7 @@ async def find_loops(
             never_done=req.never_done,
             target_climb_m=req.climb_m,
             pois=pois,
+            end=(req.end.lat, req.end.lon) if req.end else None,
             wanted=req.pass_by,
             budget_s=budget,
         )

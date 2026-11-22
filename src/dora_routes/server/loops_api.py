@@ -62,6 +62,7 @@ def to_out(
     return LoopOut(
         id=loop_id,
         distance_km=round(loop.km, 2),
+        kind=loop.kind,  # type: ignore[arg-type]
         climb_m=loop.climb_m,
         passes=[PassedPlace(kind=p.kind, name=p.name, lat=p.lat, lon=p.lon) for p in loop.passes],
         pass_by_met=(None if not wanted else {p.kind for p in loop.passes} >= set(wanted)),
