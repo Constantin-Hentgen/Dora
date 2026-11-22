@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.7.0...v0.8.0) (2026-11-22)
+
+
+### Features
+
+* point-to-point routes, with a finish different from the start ([#69](https://github.com/Constantin-Hentgen/Dora/issues/69)) ([ab30f0c](https://github.com/Constantin-Hentgen/Dora/commit/ab30f0cccac9cf811edd9094980d33ca8472eb53))
+
 ## [0.7.0](https://github.com/Constantin-Hentgen/Dora/compare/v0.6.0...v0.7.0) (2026-11-17)
 
 
