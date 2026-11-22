@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
 from dora_routes.activities import Activity, Shares, Surface
@@ -57,6 +58,7 @@ class Loop:
     score: float = 0.0
     caption: str = ""
     passes: list[Poi] = field(default_factory=list)  # wanted places within PASS_BY_KM of the path
+    kind: str = "loop"  # "loop", or "point_to_point" when the finish is not the start
     via: Poi | None = None  # the place this loop was routed through
 
     @property
@@ -100,23 +102,24 @@ def next_radius(tries: Sequence[tuple[float, float]], target_km: float) -> float
     return r * target_km / k
 
 
-async def loop_at(
-    client: BRouterClient, start: LatLon, km: float, bearing: float, activity: Activity, *, via: Poi | None = None
+async def fit_route(
+    client: BRouterClient,
+    activity: Activity,
+    km: float,
+    *,
+    bearing: float,
+    first: float,
+    waypoints_for: Callable[[float], list[LatLon]],
+    via: Poi | None = None,
+    tries_max: int | None = None,
 ) -> Loop | None:
-    """Best loop towards `bearing`. The radius is refitted from the measured length, up to `distance_tries` calls,
-    until the loop (after spur removal) is within the tolerance. With `via`, the first waypoint is that place and
-    only the second one moves (60° further round) to fit the distance."""
-    radius = radius_for(km, activity)
-    fixed = (via.lat, via.lon) if via else None
-    if fixed:
-        radius = haversine_km(start, fixed)  # a first try close to an equilateral triangle
+    """Best route whose waypoints depend on one size parameter (`waypoints_for(size)`). The size is refitted from the
+    measured length, up to `distance_tries` calls, until the route (after spur removal) is within the tolerance."""
+    size = first
     best: Loop | None = None
     tries: list[tuple[float, float]] = []
-    for __ in range(activity.distance_tries):
-        waypoints = triangle(start, radius, bearing)
-        if fixed:
-            waypoints = [start, fixed, offset(*start, radius, bearing + 60), start]
-        route = await client.route(waypoints, activity.profile_for(client.settings))
+    for __ in range(tries_max or activity.distance_tries):
+        route = await client.route(waypoints_for(size), activity.profile_for(client.settings))
         raw_km = route.km or path_km(route.points)
         points, left = remove_spurs(route.points, activity.spurs)
         loop = Loop(
@@ -137,9 +140,86 @@ async def loop_at(
             break
         if not loop.km:
             break
-        tries.append((radius, loop.km))
-        radius = next_radius(tries, km)
+        tries.append((size, loop.km))
+        size = next_radius(tries, km)
     return best
+
+
+async def loop_at(
+    client: BRouterClient, start: LatLon, km: float, bearing: float, activity: Activity, *, via: Poi | None = None
+) -> Loop | None:
+    """Best loop towards `bearing`, its radius refitted to the distance. With `via`, the first waypoint is that
+    place and only the second one moves (60° further round) to fit the distance."""
+    if via:
+        fixed = (via.lat, via.lon)
+
+        def waypoints(radius: float) -> list[LatLon]:
+            return [start, fixed, offset(*start, radius, bearing + 60), start]
+
+        first = haversine_km(start, fixed)  # a first try close to an equilateral triangle
+    else:
+
+        def waypoints(radius: float) -> list[LatLon]:
+            return triangle(start, radius, bearing)
+
+        first = radius_for(km, activity)
+    return await fit_route(client, activity, km, bearing=bearing, first=first, waypoints_for=waypoints, via=via)
+
+
+# Where along the line start → end the detour bends, and on which side: four candidates, all different.
+DETOUR_POSITIONS = (0.35, 0.65)
+DETOUR_MAX_RATIO = 3.0  # a wanted distance above this × the direct distance is not worth a detour
+
+
+def detour_height_km(direct_km: float, crow_km: float, position: float) -> float:
+    """Height of a via-point above the line, `position` of the way along it, that makes two straight legs of total
+    `crow_km` (found by bisection: the total grows with the height)."""
+    low, high = 0.0, crow_km
+    for __ in range(40):
+        mid = (low + high) / 2
+        total = math.hypot(position * direct_km, mid) + math.hypot((1 - position) * direct_km, mid)
+        low, high = (mid, high) if total < crow_km else (low, mid)
+    return (low + high) / 2
+
+
+async def point_to_point(
+    client: BRouterClient, start: LatLon, end: LatLon, km: float, activity: Activity
+) -> list[Loop]:
+    """Routes from `start` to `end` of about `km`: the direct route when it is already long enough, else detours that
+    bend left or right of the line, at two places along it, each refitted to the distance."""
+    direct = await fit_route(
+        client,
+        activity,
+        km,
+        bearing=bearing_to(start, end),
+        first=0.0,
+        waypoints_for=lambda __: [start, end],
+        tries_max=1,
+    )  # one try: nothing to refit
+    if direct is None or not direct.km:
+        return []
+    direct.kind = "point_to_point"
+    if direct.km >= km * (1 - activity.distance_tolerance) or km > DETOUR_MAX_RATIO * direct.km:
+        return [direct]
+    crow = haversine_km(start, end)
+    line = bearing_to(start, end)
+    crow_total = km / activity.route_factor
+    tasks = []
+    for side in (-90, 90):
+        for position in DETOUR_POSITIONS:
+            foot = offset(*start, position * crow, line)
+
+            def waypoints(height: float, foot=foot, side=side) -> list[LatLon]:
+                return [start, offset(*foot, height, line + side), end]
+
+            first = detour_height_km(crow, crow_total, position)
+            tasks.append(
+                fit_route(client, activity, km, bearing=(line + side) % 360, first=first, waypoints_for=waypoints)
+            )
+    found = [r for r in await asyncio.gather(*tasks, return_exceptions=True) if isinstance(r, Loop)]
+    for loop in found:
+        loop.kind = "point_to_point"
+    return found
 
 
 def via_candidates(
@@ -244,10 +324,20 @@ async def generate(
     target_climb_m: int | None = None,
     pois: Sequence[Poi] = (),
     wanted: Sequence[str] = (),
+    end: LatLon | None = None,
     budget_s: float = 45.0,
 ) -> list[Loop]:
     """Route all bearings concurrently (the client caps calls in flight), within `budget_s`. Bearings still running
     when the budget is spent are cancelled and ignored; results keep bearing order, so output is deterministic."""
+    if end is not None:
+        try:
+            routes = await asyncio.wait_for(point_to_point(client, start, end, km, activity), timeout=budget_s)
+        except TimeoutError:
+            routes = []
+        return rank(
+            routes, target_km=km, activity=activity, surface=surface, count=count, done=done, never_done=never_done,
+            target_climb_m=target_climb_m,
+        )  # fmt: skip
     n = BEARINGS_NEVER_DONE if never_done else BEARINGS
     bearings = [i * 360 / n for i in range(n)]
     vias = via_candidates(start, km, activity, pois, wanted) if wanted else []

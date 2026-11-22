@@ -24,6 +24,9 @@ class LoopRequest(BaseModel):
     place: str | None = Field(
         None, min_length=2, max_length=200, description="Free-text place, geocoded (e.g. 'bois de vincennes')."
     )
+    end: Coordinates | None = Field(
+        None, description="Finish, when it is not the start: the routes then go from `start` to `end`."
+    )
     near: Coordinates | None = Field(None, description="Where to look first when geocoding `place`.")
     distance_km: float | None = Field(None, ge=1, le=300, description="Wanted length. Or give `duration_min`.")
     duration_min: float | None = Field(None, gt=0, le=1440, description="Wanted duration, turned into a distance.")
@@ -77,6 +80,8 @@ class LoopRequest(BaseModel):
             raise ValueError("give exactly one of `start` or `place`")
         if (self.distance_km is None) == (self.duration_min is None):
             raise ValueError("give exactly one of `distance_km` or `duration_min`")
+        if self.end is not None and self.pass_by:
+            raise ValueError("`pass_by` is not supported with `end` yet")
         if self.distance_km is None and self.target_km() < 1:
             raise ValueError("the duration and pace give less than 1 km")
         return self
@@ -123,6 +128,7 @@ class PassedPlace(BaseModel):
 
 
 class LoopOut(BaseModel):
+    kind: Literal["loop", "point_to_point"] = Field("loop", description="`point_to_point` when `end` was given.")
     id: str = Field(description="Use with GET /v1/loops/{id}.gpx and .png while the result is cached.")
     distance_km: float
     climb_m: int
