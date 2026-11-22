@@ -8,7 +8,7 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("dora-routes")
 except PackageNotFoundError:  # running from a source tree that was never installed
-    __version__ = "0.6.0"
+    __version__ = "0.7.0"
 
 from dora_routes.activities import ACTIVITIES, RUNNING, Activity, Surface, get_activity
 from dora_routes.api import LoopsResult, PlaceNotFoundError, find_loops, find_loops_sync
