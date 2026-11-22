@@ -33,6 +33,8 @@ logger = logging.getLogger(__name__)
 # Bearings tried per request: 6 (every 60°) is enough to find 3 loops 90° apart; "never done" needs more choice.
 BEARINGS = 6
 BEARINGS_NEVER_DONE = 8
+# A climb target samples more terrain: every 30°, at twice the BRouter calls.
+BEARINGS_CLIMB = 12
 # Distinct loops: bearings at least 90° apart, relaxed to 60° when there are not enough.
 BEARING_GAPS = (90.0, 60.0)
 # With a climb target the distance band is wider: in steep terrain a loop with the wanted climb is often 15-25 % off
@@ -341,7 +343,7 @@ async def generate(
             routes, target_km=km, activity=activity, surface=surface, count=count, done=done, never_done=never_done,
             target_climb_m=target_climb_m,
         )  # fmt: skip
-    n = BEARINGS_NEVER_DONE if never_done else BEARINGS
+    n = BEARINGS_CLIMB if target_climb_m else BEARINGS_NEVER_DONE if never_done else BEARINGS
     bearings = [i * 360 / n for i in range(n)]
     vias = via_candidates(start, km, activity, pois, wanted) if wanted else []
     tasks = [asyncio.create_task(loop_at(client, start, km, b, activity)) for b in bearings]

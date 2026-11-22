@@ -67,3 +67,9 @@ def test_climb_target_widens_the_distance_band() -> None:
     kw = {"target_km": 12, "activity": HIKING, "surface": Surface.MIXED, "count": 1}
     assert rank([flat, steep], **kw)[0] is flat
     assert rank([flat, steep], **kw, target_climb_m=600)[0] is steep
+
+
+def test_a_small_climb_target_still_tells_steep_loops_apart() -> None:
+    shares = Shares(deserted=0.5, calm=0.2, busy=0.0, crowded=0.0, paved=0.3, marked=0.2)
+    kw = {"km": 10, "target_km": 10, "shares": shares, "crossings": 0, "backtrack": 0.0, "surface": Surface.MIXED}
+    assert HIKING.score(**kw, climb_m=460, target_climb_m=100) > HIKING.score(**kw, climb_m=620, target_climb_m=100)
